@@ -19,7 +19,7 @@ Sw_pin = 23                         #変数"Sw_pin"に23を格納
 pi.set_mode( Sw_pin, pigpio.INPUT )
 pi.set_pull_up_down( Sw_pin, pigpio.PUD_DOWN)
 
-
+x_on = 0
 
 
 BME280_ADDR = 0x76
@@ -73,9 +73,14 @@ while True:
         h = gps.timestamp[0] if gps.timestamp[0] < 24 else gps.timestamp[0] - 24
         acc = bmx055()
         ( temp, humi, press ) = sensor.get_value()
+        if x_on == 0:
+            switch = pi.read(Sw_pin)
+        else:
+            switch = 0
+        x_on = pi.read(Sw_pin)
 
 #######　受信したGPSデータの表示です　#######
-        print(pi.read(Sw_pin))           #GPIO23が「ONで"1"」「OFFで"0"」
+        print(switch)
         print('%2d:%02d:%04.1f' % (h, gps.timestamp[1], gps.timestamp[2]))
         print('緯度経度: %2.8f, %2.8f' % (gps.latitude[0], gps.longitude[0]))
         print('海抜: %2.1f' % gps.altitude)
@@ -95,7 +100,6 @@ while True:
         Allowed_speed = 10
         Vehicle_speed = gps.speed[2]
         loc = ('100 MAP無いです')###このあとMAPで照合ない場合表示されます
-        switch = 0
         t = round( temp, 2 )
         hm = round( humi, 2 )
         p = round( press, 2 )
@@ -138,7 +142,7 @@ while True:
 
         write_position(
             path="./data/log.csv",
-            switch = pi.read(Sw_pin),
+            SWITCH = switch,
             rec_time=time_str,
             w_loc=loc,
             lat=gps.latitude[0],
